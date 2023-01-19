@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -13,30 +14,43 @@ var (
 	client *http.Client
 )
 
-func prepare() {
+func loadConfig(configPath string) error {
+	var err error
+
+	config, err = LoadConfig(configPath)
+	if err != nil {
+		return fmt.Errorf("Could not read config: %s", err)
+	}
+
+	return nil
+}
+
+func prepare() error {
 	var err error
 
 	cache, err = CreateCache(config.CacheFolder)
-
 	if err != nil {
-		log.Fatalf("Could not init cache: '%s'", err.Error())
+		return fmt.Errorf("Could not init cache: '%s'", err)
 	}
 
 	client = &http.Client{
 		Timeout: time.Second * 30,
 	}
+
+	return nil
 }
 
 func main() {
-	var err error
-
 	configPath := flag.String("config", "./conf.json", "configuration .json file path")
 	flag.Parse()
 
-	config, err = LoadConfig(*configPath)
+	err := loadConfig(*configPath)
 	if err != nil {
-		log.Fatalf("Could not read config: '%s'", err.Error())
+		log.Panic(err)
 	}
 
-	prepare()
+	err = prepare()
+	if err != nil {
+		log.Panic(err)
+	}
 }
