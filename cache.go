@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"hash"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -52,6 +55,35 @@ func CreateCache(path string) (*Cache, error) {
 	return cache, nil
 }
 
+func (c *Cache) get(key string) (*io.Reader, error) {
+	var response io.Reader
+	hashValue := calcHash(key)
+
+	// Try to get content. Error if not found.
+	c.mutex.Lock()
+	content, ok := c.knownValues[hashValue]
+	c.mutex.Unlock()
+	if !ok && len(content) > 0 {
+		return nil, fmt.Errorf("Key '%s' is not known to cache", hashValue)
+	}
+
+	// Key is known, but not loaded into RAM
+	if content == nil {
+		file, err := os.Open(c.folder + hashValue)
+		if err != nil {
+			log.Fatal("Error reading cached file '%s': %s", hashValue, err)
+			return nil, err
+		}
+
+		response = file
+	} else {
+		// Key is known and data is already loaded to RAM
+		response = bytes.NewReader(content)
+	}
+
+	return &response, nil
+}
+
 // Returns true if the resource is found, and false otherwise.
 // If the resource is busy, this method will hang until the resource is free.
 // If the resource is not found, a lock indicating that the resource is busy will be returned.
@@ -83,10 +115,12 @@ func (c *Cache) has(key string) (*sync.Mutex, bool) {
 	lock := new(sync.Mutex)
 	lock.Lock()
 	c.busyValues[hashValue] = lock
+
 	return lock, false
 }
 
 func calcHash(data string) string {
 	sha := sha256.Sum256([]byte(data))
+
 	return hex.EncodeToString(sha[:])
 }
