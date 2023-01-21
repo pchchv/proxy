@@ -102,4 +102,17 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
+
+	server := &http.Server{
+		Addr:         ":" + config.Port,
+		WriteTimeout: 30 * time.Second,
+		ReadTimeout:  30 * time.Second,
+		Handler:      http.HandlerFunc(handleGet),
+	}
+
+	log.Println("Start serving...")
+	err = server.ListenAndServe()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 }
