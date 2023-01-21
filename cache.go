@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
@@ -71,7 +72,7 @@ func (c *Cache) get(key string) (*io.Reader, error) {
 	if content == nil {
 		file, err := os.Open(c.folder + hashValue)
 		if err != nil {
-			log.Fatal("Error reading cached file '%s': %s", hashValue, err)
+			log.Fatalf("Error reading cached file '%s': %s", hashValue, err)
 			return nil, err
 		}
 
@@ -117,6 +118,50 @@ func (c *Cache) has(key string) (*sync.Mutex, bool) {
 	c.busyValues[hashValue] = lock
 
 	return lock, false
+}
+
+func (c *Cache) put(key string, content *io.Reader, contentLength int64) error {
+	hashValue := calcHash(key)
+
+	// Small enough to put it into the in-memory cache
+	if contentLength <= config.MaxCacheItemSize*1024*1024 {
+		buffer := &bytes.Buffer{}
+		_, err := io.Copy(buffer, *content)
+		if err != nil {
+			return err
+		}
+
+		defer c.release(hashValue, buffer.Bytes())
+
+		if err = ioutil.WriteFile(c.folder+hashValue, buffer.Bytes(), 0644); err != nil {
+			return err
+		}
+	} else {
+		// Too large for in-memory cache, just write to file
+		defer c.release(hashValue, nil)
+
+		file, err := os.Create(c.folder + hashValue)
+		if err != nil {
+			return err
+		}
+
+		writer := bufio.NewWriter(file)
+		_, err = io.Copy(writer, *content)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Internal method which atomically caches an item and unmarks the item as busy,
+// if it was busy before. The busy lock *must* be unlocked elsewhere!
+func (c *Cache) release(hashValue string, content []byte) {
+	c.mutex.Lock()
+	delete(c.busyValues, hashValue)
+	c.knownValues[hashValue] = content
+	c.mutex.Unlock()
 }
 
 func calcHash(data string) string {
