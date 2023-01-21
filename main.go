@@ -40,6 +40,12 @@ func prepare() error {
 	return nil
 }
 
+func handleError(err error, w http.ResponseWriter) {
+	log.Fatal(err.Error())
+	w.WriteHeader(500)
+	fmt.Fprintf(w, err.Error())
+}
+
 func main() {
 	configPath := flag.String("config", "./conf.json", "configuration .json file path")
 	flag.Parse()
