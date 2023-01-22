@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"hash"
 	"io"
-	"io/ioutil"
 	"os"
 	"sync"
 
@@ -24,11 +23,13 @@ type Cache struct {
 }
 
 func CreateCache(path string) (*Cache, error) {
-	fileInfos, err := ioutil.ReadDir(path)
+	fileInfos, err := os.ReadDir(path)
 	if err != nil {
 		golog.Error("Cannot open cache folder '%s': %s", path, err)
 		golog.Info("Create cache folder '%s'", path)
-		os.Mkdir(path, os.ModePerm)
+		if err := os.Mkdir(path, os.ModePerm); err != nil {
+			return nil, err
+		}
 	}
 
 	values := make(map[string][]byte, 0)
@@ -109,7 +110,7 @@ func (c *Cache) has(key string) (*sync.Mutex, bool) {
 	if lock, busy := c.busyValues[hashValue]; busy {
 		c.mutex.Unlock()
 		lock.Lock()
-		lock.Unlock()
+		defer lock.Unlock()
 		c.mutex.Lock()
 	}
 
@@ -142,7 +143,7 @@ func (c *Cache) put(key string, content *io.Reader, contentLength int64) error {
 		defer c.release(hashValue, buffer.Bytes())
 		golog.Debug("Added %s into in-memory cache", hashValue)
 
-		if err = ioutil.WriteFile(c.folder+hashValue, buffer.Bytes(), 0o644); err != nil {
+		if err = os.WriteFile(c.folder+hashValue, buffer.Bytes(), 0o644); err != nil {
 			return err
 		}
 

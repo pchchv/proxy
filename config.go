@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 )
 
 type Config struct {
@@ -14,14 +14,15 @@ type Config struct {
 }
 
 func LoadConfig(path string) (*Config, error) {
-	file, err := ioutil.ReadFile(path)
-
+	file, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
 	var config Config
-	json.Unmarshal(file, &config)
+	if err = json.Unmarshal(file, &config); err != nil {
+		return nil, err
+	}
 
 	return &config, nil
 }

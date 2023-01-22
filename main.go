@@ -52,8 +52,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var reader io.Reader
-		reader = response.Body
+		var reader io.Reader = response.Body
 
 		err = cache.put(fullUrl, &reader, response.ContentLength)
 		if err != nil {
@@ -82,7 +81,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 func handleError(err error, w http.ResponseWriter) {
 	golog.Fatal(err.Error())
 	w.WriteHeader(500)
-	fmt.Fprintf(w, err.Error())
+	fmt.Fprintf(w, "%v", err.Error())
 }
 
 func main() {
