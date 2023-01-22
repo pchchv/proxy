@@ -85,7 +85,7 @@ func handleError(err error, w http.ResponseWriter) {
 }
 
 func main() {
-	configPath := flag.String("config", "./conf.json", "configuration .json file path")
+	configPath := flag.String("config", "./config.json", "configuration .json file path")
 	flag.Parse()
 
 	err := loadConfig(*configPath)
