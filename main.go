@@ -15,9 +15,7 @@ var (
 	client *http.Client
 )
 
-func loadConfig(configPath string) error {
-	var err error
-
+func loadConfig(configPath string) (err error) {
 	config, err = LoadConfig(configPath)
 	if err != nil {
 		return fmt.Errorf("Could not read config: %s", err)
@@ -26,9 +24,7 @@ func loadConfig(configPath string) error {
 	return nil
 }
 
-func prepare() error {
-	var err error
-
+func prepare() (err error) {
 	cache, err = CreateCache(config.CacheFolder)
 	if err != nil {
 		return fmt.Errorf("Could not init cache: '%s'", err)
@@ -63,6 +59,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 			handleError(err, w)
 			return
 		}
+
 		defer response.Body.Close()
 	}
 
@@ -83,9 +80,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 
 func handleError(err error, w http.ResponseWriter) {
 	log.Fatal(err.Error())
-
 	w.WriteHeader(500)
-
 	fmt.Fprintf(w, err.Error())
 }
 
