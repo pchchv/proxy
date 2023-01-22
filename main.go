@@ -4,9 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"time"
+
+	"github.com/pchchv/golog"
 )
 
 var (
@@ -18,7 +19,7 @@ var (
 func loadConfig(configPath string) (err error) {
 	config, err = LoadConfig(configPath)
 	if err != nil {
-		return fmt.Errorf("Could not read config: %s", err)
+		return fmt.Errorf("Could not read config: %s", err.Error())
 	}
 
 	return nil
@@ -40,7 +41,7 @@ func prepare() (err error) {
 func handleGet(w http.ResponseWriter, r *http.Request) {
 	fullUrl := r.URL.Path + "?" + r.URL.RawQuery
 
-	log.Printf("Requested '%s'", fullUrl)
+	golog.Info("Requested '%s'", fullUrl)
 
 	// Cache miss -> Load data from requested URL and add to cache
 	if busy, ok := cache.has(fullUrl); !ok {
@@ -71,7 +72,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 	} else {
 		_, err := io.Copy(w, *content)
 		if err != nil {
-			log.Fatalf("Error writing response: %s", err.Error())
+			golog.Error("Error writing response: %s", err.Error())
 			handleError(err, w)
 			return
 		}
@@ -79,7 +80,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleError(err error, w http.ResponseWriter) {
-	log.Fatal(err.Error())
+	golog.Fatal(err.Error())
 	w.WriteHeader(500)
 	fmt.Fprintf(w, err.Error())
 }
@@ -90,13 +91,18 @@ func main() {
 
 	err := loadConfig(*configPath)
 	if err != nil {
-		log.Panic(err)
+		golog.Fatal(err.Error())
 	}
+	if config.DebugLogging {
+		golog.LogLevel = golog.LOG_DEBUG
+	}
+	golog.Debug("Config loaded")
 
 	err = prepare()
 	if err != nil {
-		log.Panic(err)
+		golog.Fatal(err.Error())
 	}
+	golog.Debug("Cache initialized")
 
 	server := &http.Server{
 		Addr:         ":" + config.Port,
@@ -105,9 +111,9 @@ func main() {
 		Handler:      http.HandlerFunc(handleGet),
 	}
 
-	log.Println("Start serving...")
+	golog.Info("Start serving...")
 	err = server.ListenAndServe()
 	if err != nil {
-		log.Fatal(err.Error())
+		golog.Fatal(err.Error())
 	}
 }
