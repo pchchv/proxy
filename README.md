@@ -45,7 +45,7 @@ go run *.go
 | `-config my-config.json` | Uses the file `my_config.json` as configuration file. Default value is `./config.json`.
 
 # Configuration file
-#### All the configuration is done in the `config.json` file. This is a simple JSON-file with some properties that should be set by you:
+All the configuration is done in the `config.json` file. This is a simple JSON-file with some properties that should be set by you:
 
 | Property | Type | Description |
 |:---|:---|:---|
@@ -57,9 +57,9 @@ go run *.go
 
 # Examples
 ## With the given config
-#### The current configuration caches requests to `https://imgs.xkcd.com`. So just start the proxy and go to e.g.:
+The current configuration caches requests to `https://imgs.xkcd.com`. So just start the proxy and go to e.g.:
 
-[http://localhost:8080/comics/campaign_fundraising_emails.png](http://localhost:8080/comics/campaign_fundraising_emails.png)
+http://localhost:8080/comics/campaign_fundraising_emails.png
 
 ## Caching google searches
 
@@ -70,9 +70,9 @@ go run *.go
     "cache_folder": "./cache/"
 }
 ```
-#### Then using the proxy with the URL `http://localhost:8080/search?source=hp&ei=QmBwWtTMHojOwAK2146oDQ&btnG=Suche&q=go+(language)` will open the result page of a google search for "go (language)". You may notice, that the site looks different then the original one. This happens because the proxy does not change links in the HTML (e.g. to `css` files).
+Then using the proxy with the URL `http://localhost:8080/search?source=hp&ei=QmBwWtTMHojOwAK2146oDQ&btnG=Suche&q=go+(language)` will open the result page of a google search for "go (language)". You may notice, that the site looks different then the original one. This happens because the proxy does not change links in the HTML (e.g. to `css` files).
 
-#### The cache folder now contains files that are requested when opening the site (the HTML page, the favicon or other images):
+The cache folder now contains files that are requested when opening the site (the HTML page, the favicon or other images):
 ```
 5,4K 5b99ab35db77d3f6b8fada5270bc47b924ee8cca8b446d5d17cb6eed57bd372f
 5,4K 802264eb0ff19278f578bfe80df00b9ed3b9ee67f670c2d6cea2d330cb7a49eb
@@ -81,4 +81,4 @@ go run *.go
  51K b9a229ca754de56be3c2743e5a51deac09e170c05388cc2c14b2e70608d9d4e4
  12K e5c601f8012efac42f37f43427272d2e9ec9756b2d401fab2a495dd3b96266bc
 ```
-#### A great thing: Accessing another google search site, some images are not downloaded twice. Long live the cache!
+A great thing: Accessing another google search site, some images are not downloaded twice. Long live the cache!
