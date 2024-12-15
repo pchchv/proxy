@@ -39,7 +39,7 @@ func prepare() (err error) {
 func handleGet(w http.ResponseWriter, r *http.Request) {
 	fullUrl := r.URL.Path + "?" + r.URL.RawQuery
 
-	golog.Info("Requested '%s'", fullUrl)
+	golog.Info("requested '%s'", fullUrl)
 
 	// Cache miss -> Load data from requested URL and add to cache.
 	if busy, ok := cache.has(fullUrl); !ok {
