@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
+	"errors"
 	"hash"
 	"io"
 	"os"
@@ -69,12 +69,13 @@ func (c *Cache) get(key string) (*io.Reader, error) {
 	c.mutex.Unlock()
 	if !ok && len(content) > 0 {
 		golog.Debug("cache doesn't know key '%s'", hashValue)
-		return nil, fmt.Errorf("key '%s' is not known to cache", hashValue)
+		return nil, errors.New("key '" + hashValue + "' is not known to cache")
 	}
 
 	// Key is known, but not loaded into RAM.
 	if content == nil {
 		golog.Debug("cache item '%s' known but is not stored in memory. Using file.", hashValue)
+
 		file, err := os.Open(c.folder + hashValue)
 		if err != nil {
 			golog.Error("error reading cached file '%s': %s", hashValue, err)

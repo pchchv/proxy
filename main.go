@@ -1,8 +1,8 @@
 package main
 
 import (
+	"errors"
 	"flag"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -18,7 +18,7 @@ var (
 
 func loadConfig(configPath string) (err error) {
 	if config, err = LoadConfig(configPath); err != nil {
-		return fmt.Errorf("could not read config: %s", err.Error())
+		return errors.New("could not read config: " + err.Error())
 	}
 
 	return nil
@@ -26,7 +26,7 @@ func loadConfig(configPath string) (err error) {
 
 func prepare() (err error) {
 	if cache, err = CreateCache(config.CacheFolder); err != nil {
-		return fmt.Errorf("could not init cache: '%s'", err)
+		return errors.New("could not init cache: " + err.Error())
 	}
 
 	client = &http.Client{
