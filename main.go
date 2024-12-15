@@ -79,7 +79,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 func handleError(err error, w http.ResponseWriter) {
 	golog.Fatal(err.Error())
 	w.WriteHeader(500)
-	fmt.Fprintf(w, "%v", err.Error())
+	w.Write([]byte(err.Error()))
 }
 
 func main() {
