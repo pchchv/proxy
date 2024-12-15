@@ -43,7 +43,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 
 	golog.Info("Requested '%s'", fullUrl)
 
-	// Cache miss -> Load data from requested URL and add to cache
+	// Cache miss -> Load data from requested URL and add to cache.
 	if busy, ok := cache.has(fullUrl); !ok {
 		defer busy.Unlock()
 		response, err := client.Get(config.Target + fullUrl)
@@ -63,7 +63,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 		defer response.Body.Close()
 	}
 
-	// The cache has definitely the data we want, so get a reader for that
+	// The cache has definitely the data we want, so get a reader for that.
 	content, err := cache.get(fullUrl)
 
 	if err != nil {

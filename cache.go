@@ -35,8 +35,10 @@ func CreateCache(path string) (*Cache, error) {
 	values := make(map[string][]byte, 0)
 	busy := make(map[string]*sync.Mutex, 0)
 
-	// Go through each file and save its name to the map. The contents of the file are loaded as needed.
-	// This keeps us from having to read the contents of the directory every time the user needs data that has not yet been loaded.
+	// Go through each file and save its name to the map.
+	// The contents of the file are loaded as needed.
+	// This keeps us from having to read the contents of the
+	// directory every time the user needs data that has not yet been loaded.
 	for _, info := range fileInfos {
 		if !info.IsDir() {
 			values[info.Name()] = nil
@@ -62,7 +64,8 @@ func (c *Cache) get(key string) (*io.Reader, error) {
 	var response io.Reader
 	hashValue := calcHash(key)
 
-	// Try to get content. Error if not found.
+	// Try to get content.
+	// Error if not found.
 	c.mutex.Lock()
 	content, ok := c.knownValues[hashValue]
 	c.mutex.Unlock()
@@ -71,7 +74,7 @@ func (c *Cache) get(key string) (*io.Reader, error) {
 		return nil, fmt.Errorf("Key '%s' is not known to cache", hashValue)
 	}
 
-	// Key is known, but not loaded into RAM
+	// Key is known, but not loaded into RAM.
 	if content == nil {
 		golog.Debug("Cache item '%s' known but is not stored in memory. Using file.", hashValue)
 
@@ -85,7 +88,7 @@ func (c *Cache) get(key string) (*io.Reader, error) {
 
 		golog.Debug("Create reader from file %s", hashValue)
 	} else {
-		// Key is known and data is already loaded to RAM
+		// Key is known and data is already loaded to RAM.
 		response = bytes.NewReader(content)
 
 		golog.Debug("Create reader from %d byte large cache content", len(content))
@@ -97,7 +100,8 @@ func (c *Cache) get(key string) (*io.Reader, error) {
 // Returns true if the resource is found, and false otherwise.
 // If the resource is busy, this method will hang until the resource is free.
 // If the resource is not found, a lock indicating that the resource is busy will be returned.
-// Once the resource has been put into cache the busy lock *must* be unlocked to allow others to access the newly cached resource.
+// Once the resource has been put into cache the
+// busy lock *must* be unlocked to allow others to access the newly cached resource.
 func (c *Cache) has(key string) (*sync.Mutex, bool) {
 	hashValue := calcHash(key)
 
@@ -120,7 +124,8 @@ func (c *Cache) has(key string) (*sync.Mutex, bool) {
 		return nil, true
 	}
 
-	// The resource is not in the cache, mark the resource as busy until it has been cached successfully.
+	// The resource is not in the cache,
+	// mark the resource as busy until it has been cached successfully.
 	// Unlocking lock is required!
 	lock := new(sync.Mutex)
 	lock.Lock()
@@ -132,7 +137,7 @@ func (c *Cache) has(key string) (*sync.Mutex, bool) {
 func (c *Cache) put(key string, content *io.Reader, contentLength int64) error {
 	hashValue := calcHash(key)
 
-	// Small enough to put it into the in-memory cache
+	// Small enough to put it into the in-memory cache.
 	if contentLength <= config.MaxCacheItemSize*1024*1024 {
 		buffer := &bytes.Buffer{}
 		_, err := io.Copy(buffer, *content)
@@ -149,7 +154,7 @@ func (c *Cache) put(key string, content *io.Reader, contentLength int64) error {
 
 		golog.Debug("Wrote content of entry %s into file", hashValue)
 	} else {
-		// Too large for in-memory cache, just write to file
+		// Too large for in-memory cache, just write to file.
 		defer c.release(hashValue, nil)
 		golog.Debug("Added nil-entry for %s into in-memory cache", hashValue)
 
@@ -173,7 +178,8 @@ func (c *Cache) put(key string, content *io.Reader, contentLength int64) error {
 }
 
 // Internal method which atomically caches an item and unmarks the item as busy,
-// if it was busy before. The busy lock *must* be unlocked elsewhere!
+// if it was busy before.
+// The busy lock *must* be unlocked elsewhere!
 func (c *Cache) release(hashValue string, content []byte) {
 	c.mutex.Lock()
 	delete(c.busyValues, hashValue)
