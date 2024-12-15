@@ -17,18 +17,14 @@ var (
 )
 
 func loadConfig(configPath string) (err error) {
-	config, err = LoadConfig(configPath)
-	if err != nil {
-		return fmt.Errorf("Could not read config: %s", err.Error())
+		return fmt.Errorf("could not read config: %s", err.Error())
 	}
 
 	return nil
 }
 
 func prepare() (err error) {
-	cache, err = CreateCache(config.CacheFolder)
-	if err != nil {
-		return fmt.Errorf("Could not init cache: '%s'", err)
+		return fmt.Errorf("could not init cache: '%s'", err)
 	}
 
 	client = &http.Client{
@@ -71,7 +67,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 	} else {
 		_, err := io.Copy(w, *content)
 		if err != nil {
-			golog.Error("Error writing response: %s", err.Error())
+			golog.Error("error writing response: %s", err.Error())
 			handleError(err, w)
 			return
 		}
@@ -95,13 +91,14 @@ func main() {
 	if config.DebugLogging {
 		golog.LogLevel = golog.LOG_DEBUG
 	}
-	golog.Debug("Config loaded")
+	golog.Debug("config loaded")
 
 	err = prepare()
 	if err != nil {
 		golog.Fatal(err.Error())
 	}
-	golog.Debug("Cache initialized")
+
+	golog.Debug("cache initialized")
 
 	server := &http.Server{
 		Addr:         ":" + config.Port,
@@ -110,7 +107,8 @@ func main() {
 		Handler:      http.HandlerFunc(handleGet),
 	}
 
-	golog.Info("Start serving...")
+	golog.Info("start serving...")
+
 	err = server.ListenAndServe()
 	if err != nil {
 		golog.Fatal(err.Error())

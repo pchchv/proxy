@@ -25,8 +25,8 @@ type Cache struct {
 func CreateCache(path string) (*Cache, error) {
 	fileInfos, err := os.ReadDir(path)
 	if err != nil {
-		golog.Error("Cannot open cache folder '%s': %s", path, err)
-		golog.Info("Create cache folder '%s'", path)
+		golog.Error("cannot open cache folder '%s': %s", path, err)
+		golog.Info("create cache folder '%s'", path)
 		if err := os.Mkdir(path, os.ModePerm); err != nil {
 			return nil, err
 		}
@@ -46,9 +46,7 @@ func CreateCache(path string) (*Cache, error) {
 	}
 
 	hash := sha256.New()
-
 	mutex := &sync.Mutex{}
-
 	cache := &Cache{
 		folder:      path,
 		hash:        hash,
@@ -70,17 +68,16 @@ func (c *Cache) get(key string) (*io.Reader, error) {
 	content, ok := c.knownValues[hashValue]
 	c.mutex.Unlock()
 	if !ok && len(content) > 0 {
-		golog.Debug("Cache doesn't know key '%s'", hashValue)
-		return nil, fmt.Errorf("Key '%s' is not known to cache", hashValue)
+		golog.Debug("cache doesn't know key '%s'", hashValue)
+		return nil, fmt.Errorf("key '%s' is not known to cache", hashValue)
 	}
 
 	// Key is known, but not loaded into RAM.
 	if content == nil {
-		golog.Debug("Cache item '%s' known but is not stored in memory. Using file.", hashValue)
-
+		golog.Debug("cache item '%s' known but is not stored in memory. Using file.", hashValue)
 		file, err := os.Open(c.folder + hashValue)
 		if err != nil {
-			golog.Error("Error reading cached file '%s': %s", hashValue, err)
+			golog.Error("error reading cached file '%s': %s", hashValue, err)
 			return nil, err
 		}
 
@@ -91,7 +88,7 @@ func (c *Cache) get(key string) (*io.Reader, error) {
 		// Key is known and data is already loaded to RAM.
 		response = bytes.NewReader(content)
 
-		golog.Debug("Create reader from %d byte large cache content", len(content))
+		golog.Debug("create reader from %d byte large cache content", len(content))
 	}
 
 	return &response, nil
@@ -146,17 +143,17 @@ func (c *Cache) put(key string, content *io.Reader, contentLength int64) error {
 		}
 
 		defer c.release(hashValue, buffer.Bytes())
-		golog.Debug("Added %s into in-memory cache", hashValue)
+		golog.Debug("added %s into in-memory cache", hashValue)
 
 		if err = os.WriteFile(c.folder+hashValue, buffer.Bytes(), 0o644); err != nil {
 			return err
 		}
 
-		golog.Debug("Wrote content of entry %s into file", hashValue)
+		golog.Debug("wrote content of entry %s into file", hashValue)
 	} else {
 		// Too large for in-memory cache, just write to file.
 		defer c.release(hashValue, nil)
-		golog.Debug("Added nil-entry for %s into in-memory cache", hashValue)
+		golog.Debug("added nil-entry for %s into in-memory cache", hashValue)
 
 		file, err := os.Create(c.folder + hashValue)
 		if err != nil {
@@ -169,10 +166,10 @@ func (c *Cache) put(key string, content *io.Reader, contentLength int64) error {
 			return err
 		}
 
-		golog.Debug("Wrote content of entry %s into file", hashValue)
+		golog.Debug("wrote content of entry %s into file", hashValue)
 	}
 
-	golog.Debug("Cache wrote content into '%s'", hashValue)
+	golog.Debug("cache wrote content into '%s'", hashValue)
 
 	return nil
 }
@@ -189,6 +186,5 @@ func (c *Cache) release(hashValue string, content []byte) {
 
 func calcHash(data string) string {
 	sha := sha256.Sum256([]byte(data))
-
 	return hex.EncodeToString(sha[:])
 }
