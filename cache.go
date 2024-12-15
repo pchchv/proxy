@@ -161,8 +161,7 @@ func (c *Cache) put(key string, content *io.Reader, contentLength int64) error {
 		}
 
 		writer := bufio.NewWriter(file)
-		_, err = io.Copy(writer, *content)
-		if err != nil {
+		if _, err = io.Copy(writer, *content); err != nil {
 			return err
 		}
 

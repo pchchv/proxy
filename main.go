@@ -17,6 +17,7 @@ var (
 )
 
 func loadConfig(configPath string) (err error) {
+	if config, err = LoadConfig(configPath); err != nil {
 		return fmt.Errorf("could not read config: %s", err.Error())
 	}
 
@@ -24,6 +25,7 @@ func loadConfig(configPath string) (err error) {
 }
 
 func prepare() (err error) {
+	if cache, err = CreateCache(config.CacheFolder); err != nil {
 		return fmt.Errorf("could not init cache: '%s'", err)
 	}
 
@@ -93,8 +95,7 @@ func main() {
 	}
 	golog.Debug("config loaded")
 
-	err = prepare()
-	if err != nil {
+	if err = prepare(); err != nil {
 		golog.Fatal(err.Error())
 	}
 
@@ -109,8 +110,7 @@ func main() {
 
 	golog.Info("start serving...")
 
-	err = server.ListenAndServe()
-	if err != nil {
+	if err = server.ListenAndServe(); err != nil {
 		golog.Fatal(err.Error())
 	}
 }
